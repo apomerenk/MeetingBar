@@ -259,7 +259,8 @@ final class GCEventStore: NSObject,
                         cont.resume(returning: token) // stateChangeDelegate persists new tokens
                     } else {
                         if let err = error as NSError?,
-                           err.domain == OIDOAuthTokenErrorDomain {
+                           err.domain == OIDOAuthTokenErrorDomain,
+                           err.code == OIDErrorCodeOAuth.invalidGrant.rawValue {
                             self.clearAuthState()
                         }
                         cont.resume(throwing: error ?? AuthError.refreshFailed)
@@ -333,7 +334,7 @@ final class GCEventStore: NSObject,
         }
 
         let root = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
-        return root["items"] as! [[String: Any]]
+        return root["items"] as? [[String: Any]] ?? []
     }
 
     private func revoke(token: String) async throws {
